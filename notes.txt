@@ -1,0 +1,11 @@
+Things to change in engine
+1. Serializer
+2. Shaders,
+Create Entity Def for type should be function pointer that user can set
+Demo code
+
+Check
+
+standalone         apple_s
+animation          apple_a
+group_animation    apple_g
