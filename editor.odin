@@ -162,13 +162,13 @@ snap_pos :: proc(pos: [2]f32) -> [2]f32 {
     return pos
 }
 
-
-editor_render_entity :: proc() {/* imgui for selected entity */
+/* imgui for selected entity */
+editor_render_entity :: proc() {
     if game.editor_ctx.selected_entity != 0 {
-	level := &game.levels[game.curr_level_id]
+	level  := &game.levels[game.curr_level_id]
 	entity := &level.entities[game.editor_ctx.selected_entity]
-	def := level.entity_defs[game.editor_ctx.selected_entity - 1]
-	//im.SliderScalarN("Size ", .Float, &def.size, 2, &min_size, &max_size)
+	def    := level.entity_defs[game.editor_ctx.selected_entity - 1]
+
 	im.InputFloat2("Size ", &def.size)
 	im.InputFloat2("Box2d Size", &def.box2d_size)
 	if im.BeginCombo("Entity type", cfmt("%s", def.type)) {
@@ -187,21 +187,20 @@ editor_render_entity :: proc() {/* imgui for selected entity */
 	}
 	im.Dummy(im.Vec2{0.0, 20.0})
 	im.Text("Entity Flags")
-	{
-	    flags_index := 0
+	flags_index := 0
 
-	    for flag in EntityFlagsEnum {
+	for flag in EntityFlagsEnum {
 		if (flags_index % 2 != 0) do im.SameLine()
 
 		flags_index += 1
 		exits: bool = flag in def.flags
 
 		if im.Checkbox(cfmt("%s", flag), &exits) {
-		    if !exits do def.flags -= {flag}
-		    else do def.flags += {flag}
+			if !exits do def.flags -= {flag}
+			else do def.flags += {flag}
 		}
-	    }
 	}
+
 	im.Dummy(im.Vec2{0.0, 20.0})
 	if .ANIMATION in def.flags {
 	    im.SliderInt("Animation", &def.anim_step, 0, 20)
@@ -268,8 +267,7 @@ editor_render_entity :: proc() {/* imgui for selected entity */
 	}
 	//EntityMap
 
-	{
-	    if def.static_index != 0 {
+	if def.static_index != 0 {
 		indexes := &level.entity_maps[entity.static_index]
 		{
 		    if im.BeginCombo("Select entity", cfmt("%d", game.editor_ctx.curr_static_index)) {
@@ -278,8 +276,6 @@ editor_render_entity :: proc() {/* imgui for selected entity */
 			}
 			im.EndCombo()
 		    }
-
-
 		}
 		if im.Button("Add") {
 		    if !slice.contains(indexes[:], game.editor_ctx.curr_static_index) {
@@ -294,7 +290,6 @@ editor_render_entity :: proc() {/* imgui for selected entity */
 			ordered_remove(indexes, i)
 		    }
 		}
-	    }
 	}
 	old_def := &level.entity_defs[game.editor_ctx.selected_entity - 1]
 	if old_def^ != def {
@@ -302,7 +297,7 @@ editor_render_entity :: proc() {/* imgui for selected entity */
 	    level_reload(game.curr_level_id)
 	}
     } else {
-	im.Text("No entity selected")
+		im.Text("No entity selected")
     }
 }
 
@@ -361,40 +356,40 @@ MousePointerFlag: u32 : 1 << 30
 
 update_ctrl_keys :: proc() {
     if is_down(.LEFT_CONTROL) && is_pressed(.C) {
-	if game.editor_ctx.selected_entity != 0 {
-	    //get game def
-	    //put a copy of it in editor context
-	    level := level_get(game.curr_level_id)
-	    def := level.entity_defs[game.editor_ctx.selected_entity - 1]
-	    game.editor_ctx.copied_def = def
-	}
-    } else if is_down(.LEFT_CONTROL) && is_pressed(.V) {
-	if game.editor_ctx.selected_entity != 0 {
-	    if game.editor_ctx.copied_def != {} {
-		//Get mouse positoin
-		//add to the mouse position
-		level := &game.levels[game.curr_level_id]
-		pos := rl.GetMousePosition()
-		cam := level.camera
-		cam.offset += game.offset
-		pos = rl.GetScreenToWorld2D(pos, cam)
-		def := game.editor_ctx.copied_def
-		def.body_def.position = snap_pos(pos)
-		append(&level.entity_defs, def)
-		level_reload(game.curr_level_id)
-	    }
-	}
+		if game.editor_ctx.selected_entity != 0 {
+			//get game def
+			//put a copy of it in editor context
+			level := level_get(game.curr_level_id)
+			def := level.entity_defs[game.editor_ctx.selected_entity - 1]
+			game.editor_ctx.copied_def = def
+		}
+		} else if is_down(.LEFT_CONTROL) && is_pressed(.V) {
+		if game.editor_ctx.selected_entity != 0 {
+			if game.editor_ctx.copied_def != {} {
+			//Get mouse positoin
+			//add to the mouse position
+			level := &game.levels[game.curr_level_id]
+			pos := rl.GetMousePosition()
+			cam := level.camera
+			cam.offset += game.offset
+			pos = rl.GetScreenToWorld2D(pos, cam)
+			def := game.editor_ctx.copied_def
+			def.body_def.position = snap_pos(pos)
+			append(&level.entity_defs, def)
+			level_reload(game.curr_level_id)
+			}
+		}
     }
 
     //delete
     if is_pressed(.DELETE) {
-	if game.editor_ctx.selected_entity != 0 {
-	    //def := level.entity_defs[game.editor_ctx.selected_entity - 1]
-	    level := &game.levels[game.curr_level_id]
-	    ordered_remove(&level.entity_defs, game.editor_ctx.selected_entity - 1)
-	    level_reload(game.curr_level_id)
-	    game.editor_ctx.selected_entity = 0
-	}
+		if game.editor_ctx.selected_entity != 0 {
+			//def := level.entity_defs[game.editor_ctx.selected_entity - 1]
+			level := &game.levels[game.curr_level_id]
+			ordered_remove(&level.entity_defs, game.editor_ctx.selected_entity - 1)
+			level_reload(game.curr_level_id)
+			game.editor_ctx.selected_entity = 0
+		}
     }
 }
 

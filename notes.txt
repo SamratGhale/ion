@@ -9,3 +9,32 @@ Check
 standalone         apple_s
 animation          apple_a
 group_animation    apple_g
+
+
+
+TODO:
+Add and Serializing new members on the ion structs
+rawptr as additional data in each struct Game, Level, EntityDef, Entity
+
+`
+    //Engine Code
+    Game :: struct{
+        add : rawptr
+    }
+
+    add_serializer :: proc(s: ^Serializer, data: []byte, ) //convert to []byte from rawptr
+
+    //Game Code
+    GameNewEnum :: enum {
+        Apple,
+        Mango
+    }
+    ion.game.add = new(GameNewEnum)
+    
+`
+
+
+Port garder_gravity to the library
+Zoom and scroll around the editor
+Select, Move and Delete multiple entities
+Also Allow to change multiple attribute (maybe change the view when multiple entities are selected)

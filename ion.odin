@@ -7,6 +7,8 @@ import virt "core:mem/virtual"
 import b2   "vendor:box2d"
 import rl   "vendor:raylib"
 
+EXTRA_DATA_SIZE :: runtime.Kilobyte *5
+
 cfmt :: fmt.ctprintf
 
 Config :: struct {
@@ -43,6 +45,8 @@ GameMode :: enum {
     EDITOR,
 }
 
+entities_update_all_proc :: proc(level: ^Level)
+
 GameState :: struct {
     width, height:      i32,
     render_texture:     rl.RenderTexture,
@@ -62,7 +66,11 @@ GameState :: struct {
     font              : rl.Font,
     offset, size      : rl.Vector2,
     background_color : rl.Color,
-    entity_update_proc : map[EntityType]update_entity
+    entity_update_proc : map[EntityType]update_entity,
+    entities_update_all_custom : entities_update_all_proc,
+
+    extra              : [EXTRA_DATA_SIZE]u8,
+    skip_update_this_frame : bool,
 }
 
 game: GameState
@@ -131,8 +139,14 @@ start_game :: proc(){
                 entities_render_all()
             case .PLAY:
                 editor_render_all()
+
+                if game.entities_update_all_custom != nil{
+                    game.entities_update_all_custom(level_get(game.curr_level_id))
+                }
+                if !game.skip_update_this_frame{
+                    entities_update_all()
+                }
                 entities_render_all()
-                entities_update_all()
             case .LEVEL_PICKER:
                 menu_render_level_picker()
             case .SETTINGS:

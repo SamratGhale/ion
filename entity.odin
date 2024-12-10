@@ -23,16 +23,16 @@ EntityFlagsEnum :: enum u32 {
 EntityFlags :: bit_set[EntityFlagsEnum]
 
 //Hardcoded values for box2d
-EntityType :: enum {
-    none        = 0,
-	player      = 1 << 0,
-	enemy       = 1 << 1,
-	ground      = 1 << 2,
-	npc         = 1 << 3,
-	door        = 1 << 4,
-	key         = 1 << 5,
-	box         = 1 << 6,
-	door_opened = 1 << 7,
+EntityType :: enum u32{
+    none        =1 << 0, 
+	player      =   1 << 1,
+	enemy       =   1 << 2,
+	ground      =   1 << 3,
+	npc         =   1 << 4,
+	door        =   1 << 5,
+	key         =   1 << 6,
+	box         =   1 << 7,
+	door_opened =   1 << 8,
 }
 
 
@@ -47,6 +47,7 @@ Entity :: struct {
 	flags:        EntityFlags,
 	static_index: ^Static_Index,
 	anim:         Anim,
+    extra       : [EXTRA_DATA_SIZE]u8,
 }
 
 /**
@@ -67,6 +68,7 @@ CreateEntityDef :: struct {
 	shape_def:    b2.ShapeDef,
 	anim_step:    i32,
 	angle:        f32,
+    extra              : [EXTRA_DATA_SIZE]u8,
 }
 
 
@@ -262,7 +264,7 @@ update_entity :: proc (entity: ^Entity, level: ^Level)
 
 entities_update_all :: proc(){
 	level := level_get(game.curr_level_id)
-    b2.World_Step(level.world_id, 1.0 / 60.0, 10)
+    b2.World_Step(level.world_id, 1.0 / 60.0, 4)
 
 	for &entity in &level.entities{
 		if game.entity_update_proc[entity.type] != nil{

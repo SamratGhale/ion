@@ -20,7 +20,6 @@ LevelFlags :: bit_set[enum {
     INITILIZED,
     COMPLETED,
     DEAD,
-    ROTATION_COMPLETED,
 }]
 
 //Static index is always the same for the entity
@@ -51,6 +50,8 @@ Level :: struct {
     entity_maps_serializeable: map[Static_Index][dynamic]Static_Index, //to serialize
     zoom:                      f32,
     player_ground_shape_id:    b2.ShapeId,
+
+    extra              : [EXTRA_DATA_SIZE]u8,
 }
 
 /*
@@ -110,44 +111,44 @@ level_load :: proc(key: string) {
     level_data, _ := os.read_entire_file_from_filename(path)
 
     if level_data == nil || len(level_data) == 0 {
-	//empty level
-	append_nothing(&level.entities)
+        //empty level
+        append_nothing(&level.entities)
 
-	//NOTE: put world_def in level
-	world_def := b2.DefaultWorldDef()
-	world_def.gravity = {0, 9.8 * LENGTH_UNIT_PER_METER}
+        //NOTE: put world_def in level
+        world_def := b2.DefaultWorldDef()
+        world_def.gravity = {0, 9.8 * LENGTH_UNIT_PER_METER}
 
-	level.world_id = b2.CreateWorld(world_def)
+        level.world_id = b2.CreateWorld(world_def)
     } else {
-	s: Serializer
-	serializer_init_reader(&s, level_data[:])
-	serialize(&s, level)
-	world_def := b2.DefaultWorldDef()
-	world_def.gravity = {0, 9.8 * LENGTH_UNIT_PER_METER}
+        s: Serializer
+        serializer_init_reader(&s, level_data[:])
+        serialize(&s, level)
+        world_def := b2.DefaultWorldDef()
+        world_def.gravity = {0, 9.8 * LENGTH_UNIT_PER_METER}
 
-	level.world_id = b2.CreateWorld(world_def)
-	append_nothing(&level.entities)
+        level.world_id = b2.CreateWorld(world_def)
+        append_nothing(&level.entities)
 
-	for def in level.entity_defs {
-	    def := def
-	    def.level_id = key
-	    entity_create_new(def)
-	}
-	//put entity_maps_serializeable to entity_maps
-    level.camera.offset = {f32(game.width / 2), f32(game.height / 2)}
+        for def in level.entity_defs {
+            def := def
+            def.level_id = key
+            entity_create_new(def)
+        }
+        //put entity_maps_serializeable to entity_maps
+        level.camera.offset = {f32(game.width / 2), f32(game.height / 2)}
 
-	fmt.println(level.entity_maps_serializeable)
-	for key, val in level.entity_maps_serializeable {
-	    //index_wrap := new(Static_Index)
+        fmt.println(level.entity_maps_serializeable)
+        for key, val in level.entity_maps_serializeable {
+            //index_wrap := new(Static_Index)
 
-	    //get entity
-	    index := level.static_indexes[key]
-	    entity := &level.entities[index]
+            //get entity
+            index := level.static_indexes[key]
+            entity := &level.entities[index]
 
-	    level.entity_maps[entity.static_index] = {}
+            level.entity_maps[entity.static_index] = {}
 
-	    for v in val do append(&level.entity_maps[entity.static_index], v)
-	}
+            for v in val do append(&level.entity_maps[entity.static_index], v)
+        }
     }
     level.flags -= {.COMPLETED}
 }

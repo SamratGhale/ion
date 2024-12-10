@@ -29,8 +29,9 @@ SERIALIZER_ENABLE_GENERIC :: #config(SERIALIZER_ENABLE_GENERIC, true)
 // WARNING: do not change the order of these!
 Serializer_Version :: enum u32le {
 	initial = 0,
-	old_v,
-	box2d_size,
+	added_vec2,
+	added_vec3,
+	added_extra_bytes,
 	// Don't remove this!
 	LATEST_PLUS_ONE,
 }
@@ -490,9 +491,7 @@ serialize_entity_def :: proc(s: ^Serializer, entity: ^CreateEntityDef, loc := #c
 	serialize(s, &entity.type, loc) or_return
 	serialize(s, &entity.size, loc) or_return
 
-	if s.version >= .box2d_size{
-		serialize(s, &entity.box2d_size, loc) or_return
-	}
+	serialize(s, &entity.box2d_size, loc) or_return
 	serialize(s, &entity.flags, loc) or_return
 	serialize(s, &entity.texture_id, loc) or_return
 	serialize(s, &entity.static_index, loc) or_return
@@ -500,6 +499,9 @@ serialize_entity_def :: proc(s: ^Serializer, entity: ^CreateEntityDef, loc := #c
 	serialize(s, &entity.shape_def, loc) or_return
 	serialize(s, &entity.anim_step, loc) or_return
 	serialize(s, &entity.angle, loc) or_return
+	if s.version >= .added_extra_bytes{
+		serialize(s, &entity.extra, loc) or_return
+	}
 	return true
 }
 
@@ -512,7 +514,12 @@ serialize_level :: proc(s: ^Serializer, level: ^Level, loc := #caller_location) 
 	serialize(s, &level.entity_defs, loc) or_return
 
 	serialize(s, &level.camera.zoom, loc) or_return
+	serialize(s, &level.camera.rotation, loc) or_return
 
 	serialize(s, &level.entity_maps_serializeable, loc) or_return
+
+	if s.version >= .added_extra_bytes{
+		serialize(s, &level.extra, loc) or_return
+	}
 	return true
 }
