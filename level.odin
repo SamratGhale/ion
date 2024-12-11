@@ -65,13 +65,13 @@ level_reload :: proc(key: string) {
     level.entity_maps_serializeable = make(map[Static_Index][dynamic]Static_Index)
 
     for key, val in level.entity_maps {
-	if key != nil{
-	    level.entity_maps_serializeable[key^] = {}
+        if key != nil{
+            level.entity_maps_serializeable[key^] = {}
 
-	    for v in val {
-		append(&level.entity_maps_serializeable[key^], v)
-	    }
-	}
+            for v in val {
+                append(&level.entity_maps_serializeable[key^], v)
+            }
+        }
     }
     level.camera.rotation = 0
     clear(&level.entities)
@@ -87,18 +87,17 @@ level_reload :: proc(key: string) {
     world_def.gravity = {0, 9.8 * LENGTH_UNIT_PER_METER}
 
     level.world_id = b2.CreateWorld(world_def)
-    level.camera.offset = {f32(game.width / 2), f32(game.height / 2)}
 
     for &def in &level.entity_defs {
-	def.level_id = key
-	entity_create_new(def)
+        def.level_id = key
+        entity_create_new(def)
     }
     //fill entity_map
     for key, val in level.entity_maps_serializeable {
-	index := level.static_indexes[key]
-	entity := &level.entities[index]
-	level.entity_maps[entity.static_index] = {}
-	for v in val do append(&level.entity_maps[entity.static_index], v)
+        index := level.static_indexes[key]
+        entity := &level.entities[index]
+        level.entity_maps[entity.static_index] = {}
+        for v in val do append(&level.entity_maps[entity.static_index], v)
     }
     level.flags += {.INITILIZED}
 }
@@ -135,9 +134,7 @@ level_load :: proc(key: string) {
             entity_create_new(def)
         }
         //put entity_maps_serializeable to entity_maps
-        level.camera.offset = {f32(game.width / 2), f32(game.height / 2)}
 
-        fmt.println(level.entity_maps_serializeable)
         for key, val in level.entity_maps_serializeable {
             //index_wrap := new(Static_Index)
 
@@ -165,19 +162,20 @@ level_init_all :: proc(config: Config) {
 
 
     for level_data in levels {
-	if level_data.is_dir do continue
-	name := strings.split(level_data.name, ".")
-	append(&game.level_names, name[0])
-	assert(name[1] == "level")
-	level_load(name[0])
+        if level_data.is_dir do continue
+
+        name := strings.split(level_data.name, ".")
+        append(&game.level_names, name[0])
+        assert(name[1] == "level")
+        level_load(name[0])
     }
 
     slice.sort(game.level_names[:])
 
     builder := strings.builder_make()
     for name, i in game.level_names {
-	strings.write_string(&builder, name)
-	if i < len(game.level_names) - 1 do strings.write_rune(&builder, '\n')
+        strings.write_string(&builder, name)
+        if i < len(game.level_names) - 1 do strings.write_rune(&builder, '\n')
     }
     game.level_names_single = strings.to_cstring(&builder)
 
@@ -189,24 +187,24 @@ level_save_current :: proc() {
     level.flags -= {.COMPLETED}
 
     if level != nil {
-	level_path := fmt.tprintf("./levels/%s.level", game.curr_level_id)
-	clear(&level.entity_maps_serializeable)
-	for key, val in level.entity_maps {
-	    if key != nil{
-		level.entity_maps_serializeable[key^] = {}
-		for v in val do append(&level.entity_maps_serializeable[key^], v)
-	    }
-	}
-	s: Serializer
-	serializer_init_writer(&s)
-	serialize(&s, level)
-	os.write_entire_file(level_path, s.data[:])
+        level_path := fmt.tprintf("./levels/%s.level", game.curr_level_id)
+        clear(&level.entity_maps_serializeable)
+        for key, val in level.entity_maps {
+            if key != nil{
+            level.entity_maps_serializeable[key^] = {}
+            for v in val do append(&level.entity_maps_serializeable[key^], v)
+            }
+        }
+        s: Serializer
+        serializer_init_writer(&s)
+        serialize(&s, level)
+        os.write_entire_file(level_path, s.data[:])
     }
 }
 
 level_get :: proc(level_id: string) -> ^Level {
     if level_id in game.levels {
-	return &game.levels[level_id]
+        return &game.levels[level_id]
     }
     return nil
 }

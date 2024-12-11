@@ -3,6 +3,7 @@ package ion
 import b2 "vendor:box2d"
 import rl "vendor:raylib"
 import rlgl "vendor:raylib/rlgl"
+import "core:slice"
 
 EntityFlagsEnum :: enum u32 {
 	SELECTED,
@@ -213,14 +214,23 @@ entities_render_all :: proc() {
 		}
 		tex_rec := entity.texture_rect
 
-		if .SELECTED in entity.flags || i == int(game.editor_ctx.selected_entity) {
+		selected := false
+		if game.mode == .EDITOR{
+			if game.editor_ctx.multi_edit_mode {
+				if index, found := slice.linear_search(game.editor_ctx.selected_entities[:], i32(i)); found{
+					selected = true
+				}
+			}
+			else if i == int(game.editor_ctx.selected_entity) do selected = true
+		}
+
+		if selected{
 			tex_size: [2]f32 = {f32(texture.width), f32(texture.height)} 
 			rl.SetShaderValue(game.shaders["outline"], game.textureSizeLoc, &tex_size[0], .VEC2)
 			rl.BeginShaderMode(game.shaders["outline"])
 			rl.DrawTexturePro(texture^, tex_rec, rec, entity.size, r, rl.WHITE)
 			rl.EndShaderMode()
-		} else do rl.DrawTexturePro(texture^, tex_rec, rec, entity.size, r, rl.WHITE)
-
+		}else do rl.DrawTexturePro(texture^, tex_rec, rec, entity.size, r, rl.WHITE)
 		//Add flag on game
 		/*
 		if entity.type == .player {

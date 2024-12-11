@@ -9,10 +9,10 @@ import im "shared:odin-imgui"
 
 //gamepad keyboard
 gp_kb : map[rl.KeyboardKey]rl.GamepadButton = {
-	.A 	= .LEFT_FACE_LEFT,
-	.D 	= .LEFT_FACE_RIGHT,
-	.S 	= .LEFT_FACE_DOWN,
-	.W 	= .RIGHT_FACE_DOWN,
+	.A 	    = .LEFT_FACE_LEFT,
+	.D 	    = .LEFT_FACE_RIGHT,
+	.S 	    = .LEFT_FACE_DOWN,
+	.W 	    = .RIGHT_FACE_DOWN,
 	.ENTER  = .MIDDLE_RIGHT,
 }
 
@@ -20,9 +20,7 @@ gp_kb : map[rl.KeyboardKey]rl.GamepadButton = {
 Takes in a key and checks if it has corrosponding key and also checks if the corresponding key is down or pressed
 */
 
-is_down :: #force_inline proc(key : rl.KeyboardKey) -> bool
-{
-
+is_down :: #force_inline proc(key : rl.KeyboardKey) -> bool {
     gp_key , ok := gp_kb[key]
 
     if ok{
@@ -32,19 +30,15 @@ is_down :: #force_inline proc(key : rl.KeyboardKey) -> bool
     }
 }
 
-is_pressed :: #force_inline proc(key : rl.KeyboardKey) -> bool
-{
+is_pressed :: #force_inline proc(key : rl.KeyboardKey) -> bool {
     gp_key , ok := gp_kb[key]
-
     ret := false 
     if ok{
     	ret = rl.IsKeyPressed(key) || rl.IsGamepadButtonPressed(0, gp_key)
     }else{
     	ret = rl.IsKeyPressed(key) 
     }
-
     if ret do rl.PlaySound(game.sounds["Button.wav"])
-
     return ret
 }
 
@@ -55,13 +49,14 @@ TODO: exit, escape
 
 toggle_fullscreen :: proc(){
     display := rl.GetCurrentMonitor()
-    //Create new render texture
-    rl.UnloadRenderTexture(game.render_texture)
+    //rl.UnloadRenderTexture(game.render_texture)
 
     if rl.IsWindowFullscreen(){
-        game.render_texture = rl.LoadRenderTexture(game.width, game.height)
+        //game.render_texture = rl.LoadRenderTexture(game.width, game.height)
 
         io := im.GetIO()
+        game.width  = i32(game.config.size.x)
+        game.height = i32(game.config.size.y)
 
         im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", 10)
         build_font_atlas()
@@ -76,14 +71,13 @@ toggle_fullscreen :: proc(){
         
         im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", im.GetFontSize() * 2)
         build_font_atlas()
+        game.width  = w
+        game.height = h
 
-        game.render_texture = rl.LoadRenderTexture(w, h)
+        //game.render_texture = rl.LoadRenderTexture(w, h)
         im.Style_ScaleAllSizes(im.GetStyle(), 2)
         rl.SetWindowSize(w, h)
     }
-    //io := im.GetIO()
-    //im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", 9)
-    
     rl.ToggleFullscreen()
 }
 
@@ -103,42 +97,3 @@ handle_meta_keys :: proc()
     }
 }
 
-
-/*
- When the game is in rotated state,
- Return the corresponding keys to asdw for that rotation
- e.g. d is .S in 90 degrees
- jmp is which key is W
-*/
-
-get_rotated_asdw :: proc(level: ^Level) -> (a, s, d, w, jmp: rl.KeyboardKey) 
-{
-    switch (level.camera.rotation) 
-    {
-        case 0:
-            a = .A
-            s = .S
-            d = .D
-            w = .W
-            jmp = .W
-        case 90:
-            d = .S
-            w = .D
-            a = .W
-            s = .A
-            jmp = a
-        case 180:
-            a = .D
-            s = .W
-            d = .A
-            w = .S
-            jmp = s
-        case 270:
-            a = .S
-            s = .D
-            d = .W
-            w = .A
-            jmp = d
-    }
-    return
-}

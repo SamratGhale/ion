@@ -71,6 +71,8 @@ GameState :: struct {
 
     extra              : [EXTRA_DATA_SIZE]u8,
     skip_update_this_frame : bool,
+    prev_pos           : rl.Vector2,
+    config             : Config,
 }
 
 game: GameState
@@ -98,7 +100,10 @@ raylib_imgui_init :: proc(using config: Config) {
     im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", 13)
     build_font_atlas()
 
-    game.render_texture = rl.LoadRenderTexture(i32(size.x), i32(size.y)) //render texture should always be either full screen or the size the game started with
+    display := rl.GetCurrentMonitor()
+    w := rl.GetMonitorWidth(display)
+    h := rl.GetMonitorHeight(display)
+    game.render_texture = rl.LoadRenderTexture(w, h) //render texture should always be either full screen or the size the game started with
     b2.SetLengthUnitsPerMeter(LENGTH_UNIT_PER_METER)
 }
 
@@ -107,6 +112,7 @@ create_game :: proc(config : Config) -> ^GameState{
     game.name             = to_cstring(config.name)
     game.width  = i32(config.size.x)
     game.height = i32(config.size.y)
+    game.config = config
     raylib_imgui_init(config)
     asset_init_texture_all(config)
     asset_shaders_init_all()
@@ -155,11 +161,11 @@ start_game :: proc(){
                 menu_render_start_screen()
         }
         rl.EndTextureMode()
-
+        
         rl.DrawTexturePro(
             game.render_texture.texture,
             {0, 0, f32(game.render_texture.texture.width), -f32(game.render_texture.texture.height)},
-            {0, 0, f32(game.render_texture.texture.width), -f32(game.render_texture.texture.height)},
+            {0, 0, f32(game.width), -f32(game.height)},
             {}, 0.0, game.background_color,
         )
         

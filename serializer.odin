@@ -32,6 +32,7 @@ Serializer_Version :: enum u32le {
 	added_vec2,
 	added_vec3,
 	added_extra_bytes,
+	added_camera_offset,
 	// Don't remove this!
 	LATEST_PLUS_ONE,
 }
@@ -515,6 +516,10 @@ serialize_level :: proc(s: ^Serializer, level: ^Level, loc := #caller_location) 
 
 	serialize(s, &level.camera.zoom, loc) or_return
 	serialize(s, &level.camera.rotation, loc) or_return
+
+	if s.version >= .added_camera_offset{
+		serialize(s, &level.camera.offset, loc) or_return
+	}
 
 	serialize(s, &level.entity_maps_serializeable, loc) or_return
 
