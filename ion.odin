@@ -7,6 +7,10 @@ import virt "core:mem/virtual"
 import b2   "vendor:box2d"
 import rl   "vendor:raylib"
 
+/**
+    Change backgroundcolor according to level
+**/
+
 EXTRA_DATA_SIZE :: runtime.Kilobyte *5
 
 cfmt :: fmt.ctprintf
@@ -166,7 +170,7 @@ start_game :: proc(){
             game.render_texture.texture,
             {0, 0, f32(game.render_texture.texture.width), -f32(game.render_texture.texture.height)},
             {0, 0, f32(game.width), -f32(game.height)},
-            {}, 0.0, game.background_color,
+            {}, 0.0, rl.WHITE,
         )
         
         rl.DrawFPS(0, 0)

@@ -52,6 +52,8 @@ Level :: struct {
     player_ground_shape_id:    b2.ShapeId,
 
     extra              : [EXTRA_DATA_SIZE]u8,
+    background_color   : rl.Color,
+	background_color_f32 : [4]f32,
 }
 
 /*

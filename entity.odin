@@ -182,6 +182,8 @@ entity_get_curr_texture :: proc(entity: ^Entity) -> ^rl.Texture {
 entities_render_all :: proc() {
 
 	level := level_get(game.curr_level_id)
+	//rl.ClearBackground(level.back)
+	rl.ClearBackground(level.background_color)
 	rl.BeginMode2D(level.camera)
 	if !game.editor_ctx.hide_grid
 	{

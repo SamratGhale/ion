@@ -33,6 +33,7 @@ Serializer_Version :: enum u32le {
 	added_vec3,
 	added_extra_bytes,
 	added_camera_offset,
+	added_background_color,
 	// Don't remove this!
 	LATEST_PLUS_ONE,
 }
@@ -525,6 +526,9 @@ serialize_level :: proc(s: ^Serializer, level: ^Level, loc := #caller_location) 
 
 	if s.version >= .added_extra_bytes{
 		serialize(s, &level.extra, loc) or_return
+	}
+	if s.version >= .added_background_color{
+		serialize(s, &level.background_color, loc) or_return
 	}
 	return true
 }

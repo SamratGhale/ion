@@ -103,8 +103,13 @@ editor_render_level :: proc() /* imgui for selected level */
     if im.Button("Save Level") {
 		level_save_current()
     }
+
+	if im.ColorPicker4("Background Color", &level.background_color_f32, {.Uint8,.InputRGB,.PickerHueBar, .AlphaBar}){
+		val :[4]u8= transmute([4]u8)(im.ColorConvertFloat4ToU32(level.background_color_f32))
+		level.background_color = rl.Color(val)
+	}
 }
-editor_render_asset_browser :: proc(def: ^CreateEntityDef) {/* imgui asset picker for selected */
+editor_render_asset_browser :: proc(def: ^CreateEntityDef = nil) {/* imgui asset picker for selected */
     col_index := 0
     if im.Begin("Asset browser", nil) {
 		for key, texture in game.assets {
@@ -113,7 +118,19 @@ editor_render_asset_browser :: proc(def: ^CreateEntityDef) {/* imgui asset picke
 				col_index += 1
 
 				im_tex_id := cast(im.TextureID)uintptr(&texture[0].id)
-				if im.ImageButton(to_cstring(key), im_tex_id, {50, 50}) do def.texture_id = key
+				if im.ImageButton(to_cstring(key), im_tex_id, {50, 50}) {
+
+					if game.editor_ctx.multi_edit_mode{
+						level := level_get(game.curr_level_id)
+						for i in game.editor_ctx.selected_entities{
+							def := &level.entity_defs[i - 1]
+							def.texture_id = key
+						}
+						level_reload(game.curr_level_id)
+					} else{
+						def.texture_id = key
+					}
+				}
 				if im.IsItemHovered() do im.SetTooltip(to_cstring(key))
 			}
 		}
@@ -303,8 +320,8 @@ editor_render_entity :: proc() {
     }
 }
 
-editor_render_live :: proc() /* Renders the live Entity Value of the selected entity rather than entity_def values */
-{
+/* Renders the live Entity Value of the selected entity rather than entity_def values */
+editor_render_live :: proc() {
     if game.editor_ctx.selected_entity != 0 {
 		level := &game.levels[game.curr_level_id]
 		entity := &level.entities[game.editor_ctx.selected_entity]
@@ -329,7 +346,12 @@ editor_render_live :: proc() /* Renders the live Entity Value of the selected en
 	Texture
 */
 editor_render_multi_entity :: proc(){
-
+	if im.Button("Select Texture Asset") {
+		game.editor_ctx.asset_browser = !game.editor_ctx.asset_browser
+	}
+	if game.editor_ctx.asset_browser{
+		editor_render_asset_browser()
+	}
 }
 
 editor_render_all :: proc() { /* Renders all the above functions */
