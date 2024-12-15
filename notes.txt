@@ -38,3 +38,5 @@ Port garder_gravity to the library
 Zoom and scroll around the editor
 Select, Move and Delete multiple entities
 Also Allow to change multiple attribute (maybe change the view when multiple entities are selected)
+Sort asset names
+Don't crash while deleting all the entities

@@ -2,6 +2,8 @@ package ion
 
 import os "core:os" // to format path
 import "core:strings"
+import "core:fmt"
+import "core:slice"
 import rl "vendor:raylib"
 
 to_cstring :: strings.unsafe_string_to_cstring
@@ -11,21 +13,25 @@ to_cstring :: strings.unsafe_string_to_cstring
     TODO: context allocator
 		  do not load if the file is not a image
 **/
+
 asset_texture_init :: proc(asset_path: string) {
     dir, _      := os.open(asset_path)
-    contents, _ := os.read_dir(dir, 200)
+    contents, _ := os.read_dir(dir, 1000)
+
 
     for content in contents {
-	if content.is_dir {
-	    asset_texture_init(content.fullpath)
-	} else {
-	    fullname := strings.split(content.name, ".")
-	    name := fullname[0]
-	    game.assets[name] = make([dynamic]rl.Texture2D, 0)
-	    new_tex := rl.LoadTexture(to_cstring(content.fullpath))
-	    append(&game.assets[name], new_tex)
-	}
+		if content.is_dir {
+			asset_texture_init(content.fullpath)
+		} else {
+			fullname := strings.split(content.name, ".")
+			name := fullname[0]
+			append(&game.asset_names, name)
+			game.assets[name] = make([dynamic]rl.Texture2D, 0)
+			new_tex := rl.LoadTexture(to_cstring(content.fullpath))
+			append(&game.assets[name], new_tex)
+		}
     }
+	slice.sort(game.asset_names[:])
 }
 
 /**
@@ -39,16 +45,16 @@ asset_texture_init_by_folder :: proc(asset_path: string) {
     contents, _ := os.read_dir(dir, 200)
 
     for content in contents {
-	if content.is_dir {
-	    folder_handle, _ := os.open(content.fullpath)
-	    pngs, _ := os.read_dir(folder_handle, 200)
+		if content.is_dir {
+			folder_handle, _ := os.open(content.fullpath)
+			pngs, _ := os.read_dir(folder_handle, 200)
 
-	    game.assets[content.name] = make([dynamic]rl.Texture, 0)
-	    for png in pngs {
-		tex := rl.LoadTexture(to_cstring(png.fullpath))
-		append(&game.assets[content.name], tex)
-	    }
-	}
+			game.assets[content.name] = make([dynamic]rl.Texture, 0)
+			for png in pngs {
+				tex := rl.LoadTexture(to_cstring(png.fullpath))
+				append(&game.assets[content.name], tex)
+			}
+		}
     }
 }
 

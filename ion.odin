@@ -7,10 +7,6 @@ import virt "core:mem/virtual"
 import b2   "vendor:box2d"
 import rl   "vendor:raylib"
 
-/**
-    Change backgroundcolor according to level
-**/
-
 EXTRA_DATA_SIZE :: runtime.Kilobyte *5
 
 cfmt :: fmt.ctprintf
@@ -58,6 +54,7 @@ GameState :: struct {
     mode:               GameMode,
     curr_level_id:      string,
     assets:             map[string][dynamic]rl.Texture2D,
+    asset_names:        [dynamic]string, //sorted
     sounds:             map[string]rl.Sound,
     shaders:            map[string]rl.Shader,
     levels:             map[string]Level,

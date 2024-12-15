@@ -112,7 +112,8 @@ editor_render_level :: proc() /* imgui for selected level */
 editor_render_asset_browser :: proc(def: ^CreateEntityDef = nil) {/* imgui asset picker for selected */
     col_index := 0
     if im.Begin("Asset browser", nil) {
-		for key, texture in game.assets {
+		for key in game.asset_names{
+			texture := game.assets[key]
 			if texture != nil {
 				if col_index % 7 != 0 do im.SameLine()
 				col_index += 1

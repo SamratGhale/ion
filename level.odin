@@ -2,6 +2,7 @@ package ion
 
 import "core:fmt"
 import "core:os"
+import im "shared:odin-imgui"
 import "core:slice"
 import "core:strings"
 import b2 "vendor:box2d"
@@ -48,11 +49,9 @@ Level :: struct {
     **/
     entity_maps:               map[^Static_Index][dynamic]Static_Index,
     entity_maps_serializeable: map[Static_Index][dynamic]Static_Index, //to serialize
-    zoom:                      f32,
-    player_ground_shape_id:    b2.ShapeId,
 
-    extra              : [EXTRA_DATA_SIZE]u8,
-    background_color   : rl.Color,
+    extra                : [EXTRA_DATA_SIZE]u8,
+    background_color     : rl.Color,
 	background_color_f32 : [4]f32,
 }
 
@@ -124,6 +123,9 @@ level_load :: proc(key: string) {
         s: Serializer
         serializer_init_reader(&s, level_data[:])
         serialize(&s, level)
+
+        level.background_color_f32 = im.ColorConvertU32ToFloat4(transmute(u32)level.background_color)
+
         world_def := b2.DefaultWorldDef()
         world_def.gravity = {0, 9.8 * LENGTH_UNIT_PER_METER}
 
