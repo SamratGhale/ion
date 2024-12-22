@@ -31,7 +31,6 @@ asset_texture_init :: proc(asset_path: string) {
 			append(&game.assets[name], new_tex)
 		}
     }
-	slice.sort(game.asset_names[:])
 }
 
 /**
@@ -51,6 +50,7 @@ asset_texture_init_by_folder :: proc(asset_path: string) {
 
 			game.assets[content.name] = make([dynamic]rl.Texture, 0)
 			for png in pngs {
+				append(&game.asset_names, content.name)
 				tex := rl.LoadTexture(to_cstring(png.fullpath))
 				append(&game.assets[content.name], tex)
 			}
@@ -65,6 +65,7 @@ asset_texture_init_by_folder :: proc(asset_path: string) {
 asset_texture_init_in_folder:: proc(asset_path, key: string) {
     folder_handle, _ := os.open(asset_path)
     assets, _        := os.read_dir(folder_handle, 200)
+	append(&game.asset_names, key)
     game.assets[key] = make([dynamic]rl.Texture, 0)
     for asset in assets do append(&game.assets[key], rl.LoadTexture(to_cstring(asset.fullpath)))
 }
@@ -98,6 +99,7 @@ asset_init_texture_all :: proc(config : Config) {
 	}else{
 		//Error
 	}
+	slice.sort(game.asset_names[:])
 }
 
 /**

@@ -19,6 +19,8 @@ EntityFlagsEnum :: enum u32 {
 	NO_FLIP,
 	MOVING,
 	MOVING_X,
+	MIRROR_TEX_X,
+	MIRROR_TEX_y,
 }
 
 EntityFlags :: bit_set[EntityFlagsEnum]
@@ -34,6 +36,7 @@ EntityType :: enum u32{
 	key         =   1 << 6,
 	box         =   1 << 7,
 	door_opened =   1 << 8,
+	ladder      =   1 << 9,
 }
 
 
@@ -94,6 +97,10 @@ entity_get_default_def :: proc() -> (ret: CreateEntityDef) {
 	return
 }
 
+/*
+	Given to the given type
+	Return the default CreateEntityDef
+*/
 entity_get_def :: proc(type: EntityType) -> (ret: CreateEntityDef) {
 
 	ret = entity_get_default_def()
@@ -114,7 +121,6 @@ entity_create_new :: proc(def: CreateEntityDef) {
 	def := def
 	level := level_get(def.level_id)
 
-
 	if def.box2d_size == {0, 0}{
 		def.box2d_size = def.size
 	}
@@ -125,6 +131,7 @@ entity_create_new :: proc(def: CreateEntityDef) {
 		texture_id = def.texture_id,
 		flags = def.flags,
 		anim = {step = def.anim_step},
+		extra = def.extra,
 	}
 	entity.static_index = new(Static_Index)
 	entity.static_index^ = def.static_index
@@ -211,10 +218,14 @@ entities_render_all :: proc() {
 		rec: rl.Rectangle = {
 			x      = pos.x,
 			y      = pos.y,
-			width  = entity.size.x * 2,
+			width  = (entity.size.x * 2),
 			height = entity.size.y * 2,
 		}
 		tex_rec := entity.texture_rect
+
+		if .MIRROR_TEX_X in entity.flags{
+			tex_rec.width *= -1
+		}
 
 		selected := false
 		if game.mode == .EDITOR{
@@ -233,27 +244,14 @@ entities_render_all :: proc() {
 			rl.DrawTexturePro(texture^, tex_rec, rec, entity.size, r, rl.WHITE)
 			rl.EndShaderMode()
 		}else do rl.DrawTexturePro(texture^, tex_rec, rec, entity.size, r, rl.WHITE)
-		//Add flag on game
-		/*
-		if entity.type == .player {
-			left_ab, right_ab := entity_player_get_bounding_box(level.camera.rotation, pos)
-			left, right: rl.BoundingBox
-			left.min.xy = left_ab.lowerBound
-			left.max.xy = left_ab.upperBound
-			right.min.xy = right_ab.lowerBound
-			right.max.xy = right_ab.upperBound
-			rl.DrawBoundingBox(left, rl.BLACK)
-			rl.DrawBoundingBox(right, rl.BLACK)
-		}
-		*/
 	}
 
 	rl.EndMode2D()
 	if .COMPLETED in level.flags{
 
 		rec: rl.Rectangle = {f32(game.width / 2) - 120, f32(game.height / 2), 200, 40}
-		rl.DrawText("LEVEL COMPLETED", i32(rec.x) - 150, i32(rec.y) - 100, 60, rl.BLACK)
-		rl.DrawText("PRESS R TO RESTART", i32(rec.x) - 150, i32(rec.y) , 30, rl.BLACK)
+		rl.DrawText("LEVEL COMPLETED", i32(rec.x) - 150, i32(rec.y) - 100, 60, level.text_color)
+		rl.DrawText("PRESS R TO RESTART", i32(rec.x) - 150, i32(rec.y) , 30, level.text_color)
 
 		if is_pressed(.R){
 			level_reload(game.curr_level_id)
@@ -262,8 +260,8 @@ entities_render_all :: proc() {
 	else if  .DEAD in level.flags{
 
 		rec: rl.Rectangle = {f32(game.width / 2) - 120, f32(game.height / 2), 200, 40}
-		rl.DrawText("DEAD", i32(rec.x) - 150, i32(rec.y) - 100, 60, rl.BLACK)
-		rl.DrawText("PRESS R TO RESTART", i32(rec.x) - 150, i32(rec.y) , 30, rl.BLACK)
+		rl.DrawText("DEAD", i32(rec.x) - 150, i32(rec.y) - 100, 60, level.text_color)
+		rl.DrawText("PRESS R TO RESTART", i32(rec.x) - 150, i32(rec.y) , 30, level.text_color)
 
 		if is_pressed(.R){
 			level_reload(game.curr_level_id)

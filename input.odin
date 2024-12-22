@@ -6,6 +6,13 @@ import im "shared:odin-imgui"
  * takes in rl keyboard button
  * but also check for equivalent rl gamepad key
 */
+leftStickDeadzoneX :: 0.1
+leftStickDeadzoneY :: 0.1
+rightStickDeadzoneX :: 0.1
+rightStickDeadzoneY :: 0.1
+leftTriggerDeadzone :: -0.9
+rightTriggerDeadzone :: -0.9
+
 
 //gamepad keyboard
 gp_kb : map[rl.KeyboardKey]rl.GamepadButton = {
@@ -24,7 +31,24 @@ is_down :: #force_inline proc(key : rl.KeyboardKey) -> bool {
     gp_key , ok := gp_kb[key]
 
     if ok{
-    	return rl.IsKeyDown(key) || rl.IsGamepadButtonDown(0, gp_key)
+    	ret := rl.IsKeyDown(key) || rl.IsGamepadButtonDown(0, gp_key)
+
+        left_x, left_y : f32 
+        left_x = rl.GetGamepadAxisMovement(0, .LEFT_X)
+        left_y = rl.GetGamepadAxisMovement(0, .LEFT_Y)
+        if (left_x> -leftStickDeadzoneX && left_x< leftStickDeadzoneX) {
+            left_x = 0.0
+        }
+        if (left_y> -leftStickDeadzoneY && left_y< leftStickDeadzoneY) {
+            left_y = 0.0
+        }
+        if key == .A do if left_x <= -0.5 do ret = true
+        if key == .D do if left_x >= 0.5 do ret = true
+
+        if key == .W do if left_y <= -0.5 do ret = true
+        if key == .S do if left_y >=  0.5 do ret = true
+
+        return ret
     }else{
     	return rl.IsKeyDown(key)
     }

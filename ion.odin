@@ -47,6 +47,28 @@ GameMode :: enum {
 
 entities_update_all_proc :: proc(level: ^Level)
 
+ExtraTypes :: enum{
+    GAME,
+    LEVEL,
+    ENTITY,
+}
+
+/*
+    Notes on Extra Types
+    Extra types is stored in extra inside GameState, Level and Entity as u8 array
+    The User can use it to store any data related to the game
+    
+    To let user change values of the fields in imgui we store the typeid of the extra
+    and the editor checks the typeid for tags and shows it in imgui
+    
+    tags:
+        imgui : 
+            vec2         //vector 2 shows as two slider 
+            checkbox
+            enums?
+
+*/
+
 GameState :: struct {
     width, height:      i32,
     render_texture:     rl.RenderTexture,
@@ -63,10 +85,10 @@ GameState :: struct {
     editor_ctx:         EditorContext,
     textureSizeLoc:     i32,
     arena:              virt.Arena,
-    allocator:          runtime.Allocator,
-    font              : rl.Font,
-    offset, size      : rl.Vector2,
-    background_color : rl.Color,
+    allocator          : runtime.Allocator,
+    font               : rl.Font,
+    offset, size       : rl.Vector2,
+    background_color   : rl.Color,
     entity_update_proc : map[EntityType]update_entity,
     entities_update_all_custom : entities_update_all_proc,
 
@@ -74,6 +96,7 @@ GameState :: struct {
     skip_update_this_frame : bool,
     prev_pos           : rl.Vector2,
     config             : Config,
+    extra_type_ids     : [ExtraTypes]typeid,
 }
 
 game: GameState
