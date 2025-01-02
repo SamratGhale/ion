@@ -2,6 +2,7 @@ package ion
 
 import b2 "vendor:box2d"
 import rl "vendor:raylib"
+import "core:fmt"
 import rlgl "vendor:raylib/rlgl"
 import "core:slice"
 
@@ -187,10 +188,10 @@ entity_get_curr_texture :: proc(entity: ^Entity) -> ^rl.Texture {
 }
 
 entities_render_all :: proc() {
+	rl.BeginTextureMode(game.render_texture)
+	defer rl.EndTextureMode()
 
 	level := level_get(game.curr_level_id)
-	//rl.ClearBackground(level.back)
-	rl.ClearBackground(level.background_color)
 	rl.BeginMode2D(level.camera)
 	if !game.editor_ctx.hide_grid
 	{
@@ -267,6 +268,7 @@ entities_render_all :: proc() {
 			level_reload(game.curr_level_id)
 		}
 	}
+
 }
 
 update_entity :: proc (entity: ^Entity, level: ^Level)

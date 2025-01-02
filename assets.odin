@@ -154,12 +154,36 @@ void main(){
 }
 `
 
+load_asset_from_folder :: proc(config: Config){
+	fd, err := os.open(config.shaders_path)
+
+	if err == nil{
+		dir, _ := os.read_dir(fd, 20)
+		for file in dir{
+			file_name, _ := strings.split(file.name, ".")
+			if file_name[1] == "glsl"{
+				game.shaders[file_name[0]] = rl.LoadShader(nil, to_cstring(file.fullpath))
+			}
+		}
+	}
+}
+
 
 /* For now manually load all the shader because we don't know which is fragment shader etc.*/
 //get this from user
 //This are shaders included in the game engine
-asset_shaders_init_all :: proc() {
+asset_shaders_init_all :: proc(config: Config) {
     game.shaders             = make(map[string]rl.Shader, 1)
     game.shaders["outline"]  = rl.LoadShaderFromMemory(nil, to_cstring(outline_shader))
     game.textureSizeLoc      = rl.GetShaderLocation(game.shaders["outline"], "textureSize",)
+    load_asset_from_folder(config)
 }
+
+
+
+
+
+
+
+
+

@@ -40,6 +40,7 @@ main :: proc() {
 import "core:c"
 import "core:math"
 import "core:mem"
+import "core:fmt"
 
 // Follow build instruction for imgui bindings in: https://gitlab.com/L-4/odin-imgui
 import imgui "shared:odin-imgui"
@@ -125,14 +126,9 @@ imgui_rl_end :: proc(){
 imgui_new_frame :: proc() {
 	io: ^imgui.IO = imgui.GetIO()
 
-	if rl.IsWindowFullscreen() {
 		monitor := rl.GetCurrentMonitor()
 		io.DisplaySize.x = f32(rl.GetMonitorWidth(monitor))
 		io.DisplaySize.y = f32(rl.GetMonitorHeight(monitor))
-	} else {
-		io.DisplaySize.x = f32(rl.GetScreenWidth())
-		io.DisplaySize.y = f32(rl.GetScreenHeight())
-	}
 
 	io.DisplayFramebufferScale = rl.GetWindowScaleDPI()
 	io.DeltaTime = rl.GetFrameTime()
@@ -141,6 +137,8 @@ imgui_new_frame :: proc() {
 		rl.SetMousePosition(c.int(io.MousePos.x), c.int(io.MousePos.y))
 	} else {
 		mouse_pos := rl.GetMousePosition()
+		mouse_pos.x *= f32(rl.GetMonitorWidth(0)/game.width)
+		mouse_pos.y *= f32(rl.GetMonitorHeight(0)/game.height)
 		imgui.IO_AddMousePosEvent(io, mouse_pos.x, mouse_pos.y)
 	}
 

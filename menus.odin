@@ -16,6 +16,9 @@ menu_render_settings :: proc() {
 }
 
 menu_render_start_screen :: proc()  {
+	rl.BeginTextureMode(game.render_texture)
+	defer rl.EndTextureMode()
+
 	rec: rl.Rectangle = {f32(game.render_texture.texture.width / 2) - 60, f32(game.render_texture.texture.height/ 2) - 100, 200, 40}
 	rl.DrawTextEx(game.font, game.name, {rec.x, rec.y - 100}, 80, 0, rl.BLACK)
 
@@ -42,6 +45,9 @@ menu_render_start_screen :: proc()  {
 }
 
 menu_render_level_picker :: proc() {
+	rl.BeginTextureMode(game.render_texture)
+	defer rl.EndTextureMode()
+	
 	rec: rl.Rectangle = {f32(game.render_texture.texture.width / 2) - 60, f32(game.render_texture.texture.height/ 2) - 100, 200, 40}
 	rl.DrawTextEx(game.font, game.name, {rec.x, rec.y - 100}, 80, 0, rl.BLACK)
 

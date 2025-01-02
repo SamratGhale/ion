@@ -36,10 +36,10 @@ is_down :: #force_inline proc(key : rl.KeyboardKey) -> bool {
         left_x, left_y : f32 
         left_x = rl.GetGamepadAxisMovement(0, .LEFT_X)
         left_y = rl.GetGamepadAxisMovement(0, .LEFT_Y)
-        if (left_x> -leftStickDeadzoneX && left_x< leftStickDeadzoneX) {
+        if (left_x > -leftStickDeadzoneX && left_x < leftStickDeadzoneX) {
             left_x = 0.0
         }
-        if (left_y> -leftStickDeadzoneY && left_y< leftStickDeadzoneY) {
+        if (left_y > -leftStickDeadzoneY && left_y < leftStickDeadzoneY) {
             left_y = 0.0
         }
         if key == .A do if left_x <= -0.5 do ret = true

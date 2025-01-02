@@ -40,6 +40,7 @@ editor_render_menus :: proc() {
                 im.End()
     }
 }
+
 editor_render_level :: proc() /* imgui for selected level */
 {
     ctx   := &game.editor_ctx
@@ -181,6 +182,24 @@ snap_pos :: proc(pos: [2]f32) -> [2]f32 {
         return pos
 }
 
+struct_fields_zipped_recursive :: proc(t : typeid, offset: uintptr = 0) -> []reflect.Struct_Field{
+        field := reflect.struct_fields_zipped(t)
+        ret : [dynamic]reflect.Struct_Field
+
+        for f in field{
+                if reflect.is_struct(f.type){
+                        r := struct_fields_zipped_recursive(f.type.id , offset + f.offset)
+                        for &type  in &r{
+                                type.offset += f.offset
+                                append(&ret, type)
+                        }
+                }else{
+                        append(&ret, f)
+                }
+        }
+        return ret[:len(ret)]
+}
+
 /* imgui for selected entity */
 editor_render_entity :: proc() {
         if game.editor_ctx.selected_entity != 0 {
@@ -311,8 +330,7 @@ editor_render_entity :: proc() {
                 //Check if when the extra changes does old_def changes
                 im.Text("Extra fileds")
                 if game.extra_type_ids[.ENTITY] != nil{
-                        zipped := reflect.struct_fields_zipped(game.extra_type_ids[.ENTITY])
-        
+                        zipped := struct_fields_zipped_recursive(game.extra_type_ids[.ENTITY])
                         for zip in zipped{
                                 type := reflect.struct_tag_get(zip.tag, "imgui")
                                 switch(type){
@@ -320,6 +338,9 @@ editor_render_entity :: proc() {
                                                 val := cast(^[2]f32)(uintptr(&def.extra[0]) + zip.offset)
                                                 im.SliderFloat(to_cstring(zip.name), &val.x, -1000, 1000)
                                                 im.SliderFloat("Y", &val.y, -1000, 1000)
+                                        case "checkbox":
+                                                val := cast(^bool)(uintptr(&def.extra[0]) + zip.offset)
+                                                im.Checkbox(to_cstring(zip.name), val)
                                         //case "b2Filter":
                                 }
                         }
@@ -529,6 +550,8 @@ editor_update :: proc() {
     if rl.IsMouseButtonPressed(.LEFT) && !io.WantCaptureMouse {
                 aabb: b2.AABB
                 pos := rl.GetMousePosition()
+                pos.x *= f32(rl.GetMonitorWidth(0)/game.width)
+                pos.y *= f32(rl.GetMonitorHeight(0)/game.height)
                 cam := game.levels[game.curr_level_id].camera
                 pos = rl.GetScreenToWorld2D(pos, cam)
 
