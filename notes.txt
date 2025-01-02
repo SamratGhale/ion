@@ -12,4 +12,3 @@ Don't crash while deleting all the entities
 
 How does render texture work on 
 You are always rendering on render texture
-Where are the places where drawing happens
