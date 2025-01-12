@@ -28,14 +28,17 @@ SERIALIZER_ENABLE_GENERIC :: #config(SERIALIZER_ENABLE_GENERIC, true)
 // Each update to the data layout should be a value in this enum.
 // WARNING: do not change the order of these!
 Serializer_Version :: enum u32le {
-	initial = 0,
-	added_vec2,
-	added_vec3,
-	added_extra_bytes,
-	added_camera_offset,
-	added_background_color,
-	// Don't remove this!
-	LATEST_PLUS_ONE,
+    initial = 0,
+    added_vec2,
+    added_vec3,
+    added_extra_bytes,
+    added_camera_offset,
+    added_background_color,
+
+    changed_entity_map,
+
+    // Don't remove this!
+    LATEST_PLUS_ONE,
 }
 
 SERIALIZER_VERSION_LATEST :: Serializer_Version(int(Serializer_Version.LATEST_PLUS_ONE) - 1)
@@ -368,23 +371,24 @@ serialize_union_tag :: proc(
 
 
 when SERIALIZER_ENABLE_GENERIC {
-	serialize :: proc {
-		serialize_number,
-		serialize_basic,
-		serialize_array,
-		serialize_slice,
-		serialize_string,
-		serialize_dynamic_array,
-		serialize_map,
-		serialize_foo,
+    serialize :: proc {
+	serialize_number,
+	serialize_basic,
+	serialize_array,
+	serialize_slice,
+	serialize_string,
+	serialize_dynamic_array,
+	serialize_map,
+	serialize_foo,
 
-		// Add your custom serialization procedures here
-		serialize_b2_filter,
-		serialize_entity_def,
-		serialize_b2_body_def,
-		serialize_b2_shape_def,
-		serialize_level,
-	}
+	// Add your custom serialization procedures here
+	serialize_b2_filter,
+	serialize_entity_def,
+	serialize_b2_body_def,
+	serialize_b2_shape_def,
+	serialize_level,
+	serialize_static_index_global,
+    }
 }
 
 
@@ -488,6 +492,12 @@ serialize_b2_shape_def :: proc(s: ^Serializer, shape_def: ^b2.ShapeDef, loc := #
 	return true
 }
 
+serialize_static_index_global :: proc(s:^Serializer, static_index : ^Static_Index_Global , loc := #caller_location) -> bool  {
+    serialize(s, &static_index.index, loc) or_return
+    serialize(s, &static_index.level_id , loc) or_return
+    return true
+}
+
 serialize_entity_def :: proc(s: ^Serializer, entity: ^CreateEntityDef, loc := #caller_location) -> bool {
 
 	serialize(s, &entity.type, loc) or_return
@@ -509,26 +519,29 @@ serialize_entity_def :: proc(s: ^Serializer, entity: ^CreateEntityDef, loc := #c
 
 
 serialize_level :: proc(s: ^Serializer, level: ^Level, loc := #caller_location) -> bool {
-	serialize(s, &s.version, loc) or_return
-	serialize(s, &level.flags, loc) or_return
-	serialize(s, &level.player_index, loc) or_return
-	serialize(s, &level.static_indexes, loc) or_return
-	serialize(s, &level.entity_defs, loc) or_return
+    serialize(s, &s.version, loc) or_return
+    serialize(s, &level.flags, loc) or_return
+    serialize(s, &level.player_index, loc) or_return
+    serialize(s, &level.static_indexes, loc) or_return
+    serialize(s, &level.entity_defs, loc) or_return
 
-	serialize(s, &level.camera.zoom, loc) or_return
-	serialize(s, &level.camera.rotation, loc) or_return
+    serialize(s, &level.camera.zoom, loc) or_return
+    serialize(s, &level.camera.rotation, loc) or_return
 
-	if s.version >= .added_camera_offset{
-		serialize(s, &level.camera.offset, loc) or_return
-	}
+    if s.version >= .added_camera_offset{
+	serialize(s, &level.camera.offset, loc) or_return
+    }
 
+
+    if s.version >= .changed_entity_map{
 	serialize(s, &level.entity_maps_serializeable, loc) or_return
+    }
 
-	if s.version >= .added_extra_bytes{
-		serialize(s, &level.extra, loc) or_return
-	}
-	if s.version >= .added_background_color{
-		serialize(s, &level.background_color, loc) or_return
-	}
-	return true
+    if s.version >= .added_extra_bytes{
+	serialize(s, &level.extra, loc) or_return
+    }
+    if s.version >= .added_background_color{
+	serialize(s, &level.background_color, loc) or_return
+    }
+    return true
 }

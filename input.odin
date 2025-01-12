@@ -1,3 +1,4 @@
+#+feature dynamic-literals
 package ion
 import rl "vendor:raylib"
 import im "shared:odin-imgui"
@@ -6,11 +7,11 @@ import im "shared:odin-imgui"
  * takes in rl keyboard button
  * but also check for equivalent rl gamepad key
 */
-leftStickDeadzoneX :: 0.1
-leftStickDeadzoneY :: 0.1
-rightStickDeadzoneX :: 0.1
-rightStickDeadzoneY :: 0.1
-leftTriggerDeadzone :: -0.9
+leftStickDeadzoneX   :: 0.1
+leftStickDeadzoneY   :: 0.1
+rightStickDeadzoneX  :: 0.1
+rightStickDeadzoneY  :: 0.1
+leftTriggerDeadzone  :: -0.9
 rightTriggerDeadzone :: -0.9
 
 
@@ -82,24 +83,29 @@ toggle_fullscreen :: proc(){
         game.width  = i32(game.config.size.x)
         game.height = i32(game.config.size.y)
 
-        im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", 10)
+        im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", 33)
         build_font_atlas()
+        rl.SetMouseScale(2, 2)
 
-        im.Style_ScaleAllSizes(im.GetStyle(), 0.5)
+        //im.Style_ScaleAllSizes(im.GetStyle(), 0.5)
         rl.SetWindowSize(game.width, game.height)
+        im.Style_ScaleAllSizes(im.GetStyle(), 1)
     }else{
         w := rl.GetMonitorWidth(display)
         h := rl.GetMonitorHeight(display)
 
         io := im.GetIO()
         
-        im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", im.GetFontSize() * 2)
+        im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", 33)
+        im.Style_ScaleAllSizes(im.GetStyle(), 0.5)
         build_font_atlas()
         game.width  = w
         game.height = h
+        rl.SetMouseScale(1, 1)
+
 
         //game.render_texture = rl.LoadRenderTexture(w, h)
-        im.Style_ScaleAllSizes(im.GetStyle(), 2)
+        //im.Style_ScaleAllSizes(im.GetStyle(), 2)
         rl.SetWindowSize(w, h)
     }
     rl.ToggleFullscreen()

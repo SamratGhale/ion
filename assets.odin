@@ -15,21 +15,20 @@ to_cstring :: strings.unsafe_string_to_cstring
 **/
 
 asset_texture_init :: proc(asset_path: string) {
-    dir, _      := os.open(asset_path)
-    contents, _ := os.read_dir(dir, 1000)
+    dir, _    := os.open(asset_path)
+    files , _ := os.read_dir(dir, 1000)
 
-
-    for content in contents {
-		if content.is_dir {
-			asset_texture_init(content.fullpath)
-		} else {
-			fullname := strings.split(content.name, ".")
-			name := fullname[0]
-			append(&game.asset_names, name)
-			game.assets[name] = make([dynamic]rl.Texture2D, 0)
-			new_tex := rl.LoadTexture(to_cstring(content.fullpath))
-			append(&game.assets[name], new_tex)
-		}
+    for file in files{
+	if file.is_dir {
+	    asset_texture_init(file.fullpath)
+	} else {
+	    fullname := strings.split(file.name, ".")
+	    name := fullname[0]
+	    append(&game.asset_names, name)
+	    game.assets[name] = make([dynamic]rl.Texture2D, 0)
+	    new_tex := rl.LoadTexture(to_cstring(file.fullpath))
+	    append(&game.assets[name], new_tex)
+	}
     }
 }
 
@@ -40,21 +39,21 @@ asset_texture_init :: proc(asset_path: string) {
 **/
 
 asset_texture_init_by_folder :: proc(asset_path: string) {
-    dir, _ := os.open(asset_path)
-    contents, _ := os.read_dir(dir, 200)
+    dir, _    := os.open(asset_path)
+    files , _ := os.read_dir(dir, 200)
 
-    for content in contents {
-		if content.is_dir {
-			folder_handle, _ := os.open(content.fullpath)
-			pngs, _ := os.read_dir(folder_handle, 200)
+    for file in files{
+	if file.is_dir {
+	    folder_handle, _ := os.open(file.fullpath)
+	    pngs, _ := os.read_dir(folder_handle, 200)
 
-			game.assets[content.name] = make([dynamic]rl.Texture, 0)
-			for png in pngs {
-				append(&game.asset_names, content.name)
-				tex := rl.LoadTexture(to_cstring(png.fullpath))
-				append(&game.assets[content.name], tex)
-			}
-		}
+	    game.assets[file.name] = make([dynamic]rl.Texture, 0)
+	    for png in pngs {
+		append(&game.asset_names, file.name)
+		tex := rl.LoadTexture(to_cstring(png.fullpath))
+		append(&game.assets[file.name], tex)
+	    }
+	}
     }
 }
 
@@ -65,50 +64,48 @@ asset_texture_init_by_folder :: proc(asset_path: string) {
 asset_texture_init_in_folder:: proc(asset_path, key: string) {
     folder_handle, _ := os.open(asset_path)
     assets, _        := os.read_dir(folder_handle, 200)
-	append(&game.asset_names, key)
+    append(&game.asset_names, key)
     game.assets[key] = make([dynamic]rl.Texture, 0)
     for asset in assets do append(&game.assets[key], rl.LoadTexture(to_cstring(asset.fullpath)))
 }
 
 
 asset_init_texture_all :: proc(config : Config) {
-
-	handle, err := os.open(config.assets_path)
-
-	if err  == nil{
-		dirs, error := os.read_dir(handle, os.O_RDONLY)
-		if error == nil{
-			for folder in dirs{
-				if folder.is_dir{
-					strs := strings.split(folder.name, "_")
-					assert(len(strs) >= 2)
-					t :=strs[len(strs) -1][0] 
-					switch t{
-						case 's':
-							asset_texture_init(folder.fullpath)
-						case 'a':
-							asset_texture_init_in_folder(folder.fullpath, folder.name)
-						case 'g':
-							asset_texture_init_by_folder(folder.fullpath)
-					}
-				}
-			}
-		}else{
-			//Error
+    handle, err := os.open(config.assets_path)
+    if err  == nil{
+	dirs, error := os.read_dir(handle, os.O_RDONLY)
+	if error == nil{
+	    for folder in dirs{
+		if folder.is_dir{
+		    strs := strings.split(folder.name, "_")
+		    assert(len(strs) >= 2)
+		    t :=strs[len(strs) -1][0] 
+		    switch t{
+		    case 's':
+			asset_texture_init(folder.fullpath)
+		    case 'a':
+			asset_texture_init_in_folder(folder.fullpath, folder.name)
+		    case 'g':
+			asset_texture_init_by_folder(folder.fullpath)
+		    }
 		}
+	    }
 	}else{
-		//Error
+	    //Error
 	}
-	slice.sort(game.asset_names[:])
+    }else{
+	//Error
+    }
+    slice.sort(game.asset_names[:])
 }
 
 /**
     TODO: add music rl.Music
 **/
-asset_sounds_init_all:: proc() {
+asset_sounds_init_all:: proc(config : Config) {
 	rl.InitAudioDevice()
 	game.sounds = make(map[string]rl.Sound, 100)
-	dir, _     := os.open("./sounds")
+	dir, _     := os.open(config.sounds_path)
 	sounds, _  := os.read_dir(dir, 100)
 	for sound in sounds do game.sounds[sound.name] = rl.LoadSound(to_cstring(sound.fullpath))
 }
@@ -177,6 +174,7 @@ asset_shaders_init_all :: proc(config: Config) {
     game.shaders["outline"]  = rl.LoadShaderFromMemory(nil, to_cstring(outline_shader))
     game.textureSizeLoc      = rl.GetShaderLocation(game.shaders["outline"], "textureSize",)
     load_asset_from_folder(config)
+    //asset_sounds_init_all(config)
 }
 
 

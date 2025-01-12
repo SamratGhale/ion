@@ -12,3 +12,9 @@ Don't crash while deleting all the entities
 
 How does render texture work on 
 You are always rendering on render texture
+
+
+Render textures and mouse position
+Mouse positions are directly related to render texture
+
+Game Sounds

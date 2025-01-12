@@ -126,9 +126,8 @@ imgui_rl_end :: proc(){
 imgui_new_frame :: proc() {
 	io: ^imgui.IO = imgui.GetIO()
 
-		monitor := rl.GetCurrentMonitor()
-		io.DisplaySize.x = f32(rl.GetMonitorWidth(monitor))
-		io.DisplaySize.y = f32(rl.GetMonitorHeight(monitor))
+	io.DisplaySize.x = f32(rl.GetMonitorWidth(rl.GetCurrentMonitor()))
+	io.DisplaySize.y = f32(rl.GetMonitorHeight(rl.GetCurrentMonitor()))
 
 	io.DisplayFramebufferScale = rl.GetWindowScaleDPI()
 	io.DeltaTime = rl.GetFrameTime()
@@ -137,8 +136,6 @@ imgui_new_frame :: proc() {
 		rl.SetMousePosition(c.int(io.MousePos.x), c.int(io.MousePos.y))
 	} else {
 		mouse_pos := rl.GetMousePosition()
-		mouse_pos.x *= f32(rl.GetMonitorWidth(0)/game.width)
-		mouse_pos.y *= f32(rl.GetMonitorHeight(0)/game.height)
 		imgui.IO_AddMousePosEvent(io, mouse_pos.x, mouse_pos.y)
 	}
 

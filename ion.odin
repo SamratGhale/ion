@@ -23,6 +23,7 @@ Config :: struct {
 	assets_path:      string,
 	shaders_path:     string,
 	fonts_path:       string,
+	sounds_path:      string,
 }
 
 DefaultConfig: Config = {
@@ -34,6 +35,7 @@ DefaultConfig: Config = {
 	assets_path      = "./assets",
 	levels_path      = "./levels",
 	fonts_path       = "./fonts",
+	sounds_path      = "./sounds",
 	background_color = rl.RAYWHITE,
 }
 
@@ -83,8 +85,9 @@ GameState :: struct {
 	sounds:                     map[string]rl.Sound,
 	shaders:                    map[string]rl.Shader,
 	levels:                     map[string]Level,
-	level_names:                [dynamic]string, //sorted
-	level_names_single:         cstring, //for rendering level selector
+	level_names:                [dynamic]string, //contains all the levels
+	level_names_to_display:     [dynamic]string, //contains level names to display
+	level_names_single:         cstring, //contains level names to display
 	editor_ctx:                 EditorContext,
 	textureSizeLoc:             i32,
 	arena:                      virt.Arena,
@@ -100,6 +103,8 @@ GameState :: struct {
 	prev_pos:                   rl.Vector2,
 	config:                     Config,
 	extra_type_ids:             [ExtraTypes]typeid,
+
+	audio_ctx:                  AudioConfig,
 }
 
 game: GameState
@@ -115,16 +120,20 @@ game: GameState
 */
 raylib_imgui_init :: proc(using config: Config) {
 	rl.InitWindow(game.width, game.height, to_cstring(name))
+
 	rl.SetTargetFPS(fps)
 	rl.SetExitKey(.KEY_NULL)
-	rl.GuiSetStyle(.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_SIZE), 20)
 	game.font = rl.LoadFontEx("c:\\Windows\\Fonts\\Consola.ttf", 80, nil, 250)
-	rl.GuiLoadStyle("./raygui_styles/style_cyber.rgs")
+	//rl.GuiLoadStyle("./raygui_style.rgs")
+	rl.GuiSetStyle(.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_SIZE), 80)
+	//rl.GuiSetStyle(.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_LINE_SPACING), 100)
+	//rl.GuiSetStyle(.DEFAULT, i32(rl.GuiDefaultProperty.TEXT_ALIGNMENT_VERTICAL), 100)
+	//rl.GuiSetFont(game.font)
 
 	im.CreateContext(nil)
 	imgui_init()
 	io := im.GetIO()
-	im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", 13)
+	im.FontAtlas_AddFontFromFileTTF(io.Fonts, "c:\\Windows\\Fonts\\Consola.ttf", 33)
 	build_font_atlas()
 
 	display := rl.GetCurrentMonitor()
@@ -133,7 +142,12 @@ raylib_imgui_init :: proc(using config: Config) {
 	game.render_texture = rl.LoadRenderTexture(w, h) //render texture should always be either full screen or the size the game started with
 	game.imgui_render_texture = rl.LoadRenderTexture(w, h) //render texture should always be either full screen or the size the game started with
 	b2.SetLengthUnitsPerMeter(LENGTH_UNIT_PER_METER)
+        im.Style_ScaleAllSizes(im.GetStyle(), 4)
+        rl.SetMouseScale(2, 2)
+
+	init_miniaudio()
 }
+
 
 create_game :: proc(config: Config) -> ^GameState {
 	game.background_color = config.background_color
@@ -145,13 +159,13 @@ create_game :: proc(config: Config) -> ^GameState {
 	asset_init_texture_all(config)
 	asset_shaders_init_all(config)
 	level_init_all(config)
+
+	fmt.println(rl.GetMonitorWidth(0)/game.width)
+	rl.SetMouseScale(2,2)
+
 	return &game
 }
 
-
-update_player :: proc(entity: ^Entity, level: ^Level) {
-	fmt.println("Hello world")
-}
 //Start game loop 
 start_game :: proc() {
 
@@ -159,10 +173,8 @@ start_game :: proc() {
 		free_all(context.temp_allocator)
 		handle_meta_keys()
 
-
 		rl.BeginDrawing()
 		imgui_rl_begin()
-
 
 		if game.mode == .PLAY || game.mode == .EDITOR {
 			level := level_get(game.curr_level_id)
@@ -207,19 +219,21 @@ start_game :: proc() {
 			menu_render_start_screen()
 		}
 
-		rl.BeginTextureMode(game.imgui_render_texture)
-		rl.DrawFPS(0, 0)
-		imgui_rl_end()
-		rl.EndTextureMode()
 
 		rl.DrawTexturePro( game.render_texture.texture, { 0, 0, f32(game.render_texture.texture.width), -f32(game.render_texture.texture.height), }, {0, 0, f32(game.width), -f32(game.height)}, {}, 0.0, rl.ColorAlpha(rl.WHITE, 0.75), )
 
+		rl.BeginTextureMode(game.imgui_render_texture)
+		imgui_rl_end()
+		rl.EndTextureMode()
 		if game.mode == .PLAY ||  game.mode == .EDITOR{
+			
 			level := level_get(game.curr_level_id)
-			game.entities_render_custom(level)
-		}
-		rl.DrawTexturePro(game.imgui_render_texture.texture, { 0, 0, f32(game.imgui_render_texture.texture.width), -f32(game.imgui_render_texture.texture.height), }, {0, 0, f32(game.width), -f32(game.height)}, {}, 0.0, rl.WHITE )
+			if game.entities_render_custom != nil{
+				game.entities_render_custom(level)
+			}
+			rl.DrawTexturePro(game.imgui_render_texture.texture, { 0, 0, f32(game.imgui_render_texture.texture.width), -f32(game.imgui_render_texture.texture.height), }, {0, 0, f32(game.width), -f32(game.height)}, {}, 0.0, rl.WHITE )
 
+		}
 		rl.EndDrawing()
 	}
 	rl.CloseWindow()

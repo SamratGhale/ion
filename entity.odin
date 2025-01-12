@@ -43,15 +43,20 @@ EntityType :: enum u32{
 
 
 Entity :: struct {
-	type:         EntityType,
-	body_id:      b2.BodyId,
-	shape_id:     b2.ShapeId,
-	size:         b2.Vec2,
-	texture_rect: rl.Rectangle,
-	texture_id:   string,
-	flags:        EntityFlags,
-	static_index: ^Static_Index,
-	anim:         Anim,
+    type:         EntityType,
+    body_id:      b2.BodyId,
+    shape_id:     b2.ShapeId,
+    size:         b2.Vec2,
+    texture_rect: rl.Rectangle,
+    texture_id:   string,
+    flags:        EntityFlags,
+
+    /*
+      Why is static_index a pointer and not a struct
+      Because static_index is a key in a map and we want to be able to change the index of static_index 
+    */
+    static_index: ^Static_Index,
+    anim:         Anim,
     extra       : [EXTRA_DATA_SIZE]u8,
 }
 
@@ -62,18 +67,18 @@ Entity :: struct {
     if box2_size is zero then copy from size
 **/
 CreateEntityDef :: struct {
-	size:         b2.Vec2,
-	box2d_size:   b2.Vec2, 
-	type:         EntityType,
-	flags:        EntityFlags,
-	texture_id:   string,
-	level_id:     string, //Dont't let the editor change level
-	static_index: Static_Index,
-	body_def:     b2.BodyDef,
-	shape_def:    b2.ShapeDef,
-	anim_step:    i32,
-	angle:        f32,
-    extra              : [EXTRA_DATA_SIZE]u8,
+    size        : b2.Vec2,
+    box2d_size  : b2.Vec2, 
+    type        : EntityType,
+    flags       : EntityFlags,
+    texture_id  : string,
+    level_id    : string, //Dont't let the editor change level
+    static_index: Static_Index,
+    body_def    : b2.BodyDef,
+    shape_def   : b2.ShapeDef,
+    anim_step   : i32,
+    angle       : f32,
+    extra       : [EXTRA_DATA_SIZE]u8,
 }
 
 
